@@ -6,7 +6,32 @@ Sadly there does not seem to be a simple and documented API to perform that. Ele
 
 So based on an undocumented API (toggle) and some added heuristics (to check whether the keyboard is open) I wrote this code. Some of the code is taken/rewritten from a number of posts around the web and my sincere thanks go out to the people in the forums such as https://stackoverflow.com/questions/47187216/determine-if-windows-10-touch-keyboard-is-visible-or-hidden
 
-If it helps someone great, use it, comments are welcome but the code written here is not best-practice and I will not fix bugs that I am not affected by.
+If it helps someone great, use it, comments are welcome but the code written here is not best-practice and I will not fix bugs that I am not affected by. Both sources are practically the same but we did not want to pass a parameter thus the duplication.
+
+# Electron Usage
+
+We use it by loading content in an IFrame  and add a `focusin` listener and send an ipcRenderer IPC call which causes the main electron process to execute the executables.
+
+```javascript
+frame.contentDocument.body.addEventListener('focusin', (event) => {
+   const tag = event.target.tagName.toLowerCase()
+
+   switch(tag) {
+     case 'input':
+       if (event.target.type === 'range') {
+         break;
+       }
+     case 'textarea': 
+       console.log('input focused. sending show-keyboard ...')
+       ipcRenderer.send('show-keyboard')
+       break;
+     default:
+       console.log('focus outside of input. sending hide-keyboard ...')
+       ipcRenderer.send('hide-keyboard')
+   }
+})
+```
+
 
 Cheers.
 

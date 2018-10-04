@@ -69,13 +69,13 @@ enum THREAD_STATE
 
 #pragma pack(push,8)
 
-// #ifndef _WINTERNL_
+#ifndef _WINTERNL_
 struct CLIENT_ID
 {
     HANDLE UniqueProcess; // Process ID
     HANDLE UniqueThread;  // Thread ID
 };
-//#endif
+#endif
 
 // http://www.geoffchappell.com/studies/windows/km/ntoskrnl/api/ex/sysinfo/thread.htm
 // Size = 0x40 for Win32

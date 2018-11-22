@@ -8,6 +8,7 @@
 #include <shlwapi.h> 
 #include <stdio.h>
 #include <tlhelp32.H>
+#include <dwmapi.h>
 
 #include <initguid.h>
 #include <Objbase.h>
@@ -353,7 +354,7 @@ BOOL KeyboardVisible() {
   return FALSE;
 }
 
-BOOL KeyboardVisibleLegacy() {
+BOOL KeyboardVisibleLegacy(BOOL* pVisible) {
   LPCWSTR WINDOW_CLASS = L"IPTip_Main_Window";
 
   HWND window = FindWindowEx(NULL, NULL, WINDOW_CLASS, NULL);
@@ -363,6 +364,7 @@ BOOL KeyboardVisibleLegacy() {
   }
 
   if (IsWindowVisible(window) && IsWindowEnabled(window)) {
+    *pVisible = TRUE;
     return TRUE;
   } 
    
@@ -371,11 +373,27 @@ BOOL KeyboardVisibleLegacy() {
   BOOL isVisible = (style & WS_VISIBLE) == WS_VISIBLE;
   BOOL isDisabled = (style & WS_DISABLED) == WS_DISABLED;
 
-  if (isVisible && !isDisabled) {
+  if (!isVisible || isDisabled) {
+    *pVisible = FALSE;
     return TRUE;
   }
 
-  return FALSE;
+  // DWM Window can be cloaked
+  // see https://social.msdn.microsoft.com/Forums/vstudio/en-US/f8341376-6015-4796-8273-31e0be91da62/difference-between-actually-visible-and-not-visiblewhich-are-there-but-we-cant-see-windows-of?forum=vcgeneral
+  int cloaked;
+  
+  if (DwmGetWindowAttribute(window, DWMWA_CLOAKED, &cloaked, 4) == 0)
+  {
+    if (cloaked == 0)
+    {
+        *pVisible = TRUE;
+        return TRUE;
+    }
+  }
+
+  *pVisible = FALSE;
+
+  return TRUE;
 }
 
 
@@ -385,10 +403,14 @@ int __stdcall WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
   if (KeyboardVisible()) {
     showIt = FALSE;
-  } else if (KeyboardVisibleLegacy()) {
-    showIt = FALSE;
-  } else if (IsRunningAndNotSuspended(L"WindowsInternal.ComposableShell.Experiences.TextInput.InputApp.exe")) {
-    showIt = FALSE;
+  } 
+  
+  BOOL isVisible = FALSE;
+
+  if (KeyboardVisibleLegacy(&isVisible)) {
+    showIt = !isVisible;
+  } else if (!IsRunningAndNotSuspended(L"WindowsInternal.ComposableShell.Experiences.TextInput.InputApp.exe")) {
+    showIt = TRUE;
   }
 
   if (showIt) {

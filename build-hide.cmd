@@ -12,7 +12,7 @@ SET SOURCES=hide.cpp
 
 SET INCLUDE_DIRECTORIES=
 SET LIB_DIRECTORIES=
-SET LIBS=user32.lib gdi32.lib gdiplus.lib  ole32.lib shlwapi.lib
+SET LIBS=user32.lib gdi32.lib gdiplus.lib  ole32.lib shlwapi.lib Dwmapi.lib
 set LIB_OPTIONS=/PROFILE /DEBUG /DEBUGTYPE:CV
 
 SET OPTIMIZATION=/Ox /favor:ATOM

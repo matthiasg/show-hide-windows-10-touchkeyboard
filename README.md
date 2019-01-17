@@ -17,21 +17,61 @@ frame.contentDocument.body.addEventListener('focusin', (event) => {
    const tag = event.target.tagName.toLowerCase()
 
    switch(tag) {
-     case 'input':
-       if (event.target.type === 'range') {
-         break;
-       }
-     case 'textarea': 
-       console.log('input focused. sending show-keyboard ...')
-       ipcRenderer.send('show-keyboard')
-       break;
-     default:
-       console.log('focus outside of input. sending hide-keyboard ...')
-       ipcRenderer.send('hide-keyboard')
+      case 'input':
+         if (event.target.type === 'range' ||
+              event.target.type === 'radio' ||
+              event.target.type === 'checkbox' ||
+              event.target.type === 'select' ) {
+            return
+          } 
+        case 'textarea': 
+          console.log('input or textarea focused. sending show-keyboard ...')
+          ipcRenderer.send('show-keyboard')
+          break
+        default:
+          console.log('focus outside of input. sending hide-keyboard ...')
+          ipcRenderer.send('hide-keyboard')
    }
 })
 ```
 
+In the main host file you could then receive these events and trigger the executables:
+
+```
+const electron = require('electron')
+const { spawn, execSync } = require('child_process')
+
+...
+
+mainWindow.once('show', () => {
+ 
+ ...
+ 
+ 
+ electron.ipcMain.on('show-keyboard',() => {
+   console.log('TRACE: showing keyboard ...')
+
+   try {
+     execSync('show-touchkeyboard.exe', { cwd: __dirname })
+     console.log('started touch keyboard')
+   } catch (error) {
+     console.error('Error starting show touch keyboard', error)
+   }
+ })
+
+ electron.ipcMain.on('hide-keyboard',() => {
+   console.log('TRACE: hiding keyboard ...')
+
+   try {
+     execSync('hide-touchkeyboard.exe', { cwd: __dirname })
+     console.log('hidden touch keyboard')
+   } catch (error) {
+     console.error('Error starting hide touch keyboard', error)
+   }
+ })
+})
+
+```
 
 Cheers.
 

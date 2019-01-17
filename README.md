@@ -37,7 +37,7 @@ frame.contentDocument.body.addEventListener('focusin', (event) => {
 
 In the main host file you could then receive these events and trigger the executables:
 
-```
+```javascript
 const electron = require('electron')
 const { spawn, execSync } = require('child_process')
 
